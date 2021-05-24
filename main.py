@@ -17,11 +17,11 @@ from pprint import pprint
 import requests as requests
 
 
-def file_from_vk(
-        TOKEN: string = '958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008'):
+def file_from_vk(owner_id: string):
+    TOKEN = '958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008'
     url = 'https://api.vk.com/method/photos.get'
     params = {
-        'userid': '552934290',
+        'owner_id': owner_id,
         'access_token': TOKEN,
         'album_id': 'profile',
         'v': '5.131',
