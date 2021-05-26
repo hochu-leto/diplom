@@ -13,7 +13,7 @@ V (обязательно) — используемая версия API. Исп
 """
 import string
 from pprint import pprint
-
+import json
 import requests as requests
 
 
@@ -87,6 +87,8 @@ if photos:
     token = input('Введите токен с Полигона Яндекс.Диска')
     json_ = file_to_disk(photos, token)
     if json_:
+        with open("photo_from_vk.json", 'x') as json_file
+            json.dump(json_, file_json, ensure_acsii = False, indent=2) 
         print('Выходной файл:')
         pprint(json_)
 else:
