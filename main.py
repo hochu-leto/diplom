@@ -16,9 +16,13 @@ from pprint import pprint
 import json
 import requests as requests
 
+token_file = 'token.txt'
+
 
 def file_from_vk(owner_id: string):
-    TOKEN = '958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008'
+    with open(token_file) as gitignore:
+        gitignore.readline().rstrip()
+        TOKEN = gitignore.readline().rstrip()
     url = 'https://api.vk.com/method/photos.get'
     params = {
         'owner_id': owner_id,
@@ -32,7 +36,12 @@ def file_from_vk(owner_id: string):
     response = requests.get(url, params=params)
     if 'response' in response.json():
         print('Запрос на скачивание фото из контакта успешен')
+        photo_count = int(input('Сколько фото нужно скачать:\n'))
+        i = 0
         for items in response.json()['response']['items']:
+            i += 1
+            if i >= photo_count:
+                break
             likes = items['likes']['count']
             print(f'Скачиваем фото {items["id"]}(Кодовое имя {likes})')
             max_width = 0
@@ -55,6 +64,10 @@ def file_from_vk(owner_id: string):
 
 
 def file_to_disk(photos_disk: list, OAuth: string):
+    if not OAuth:
+        with open(token_file) as gitignore:
+            OAuth = gitignore.readline().rstrip()
+    print(OAuth)
     resource_url = "https://cloud-api.yandex.net/v1/disk/resources"
     upload_url = resource_url + '/upload'
     headers = {'Content-Type': 'application/json',
@@ -81,14 +94,14 @@ def file_to_disk(photos_disk: list, OAuth: string):
     return info_json
 
 
-id_vk = input('Введите id пользователя vk')
+id_vk = input('Введите id пользователя vk:\n')
 photos = file_from_vk(id_vk)
 if photos:
-    token = input('Введите токен с Полигона Яндекс.Диска')
+    token = input('Введите токен с Полигона Яндекс.Диска:\n')
     json_ = file_to_disk(photos, token)
     if json_:
-        with open("photo_from_vk.json", 'x') as json_file
-            json.dump(json_, file_json, ensure_acsii = False, indent=2) 
+        with open("photo_from_vk.json", 'w') as json_file:
+            json.dump(json_, json_file)
         print('Выходной файл:')
         pprint(json_)
 else:
