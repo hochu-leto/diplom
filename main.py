@@ -78,7 +78,7 @@ def file_from_vk(owner_id: string):
                     max_width = vk_photo_sizes[sizes['type']]
                     photo = sizes['url']
                     photo_size = sizes['type']
-            pprint(photo)
+            # pprint(photo)
             if photo:
                 photos_vk.append({'date': items['date'],
                                   'likes': likes,
@@ -127,7 +127,6 @@ def file_to_disk(photos_disk: list, OAuth: string):
 if __name__ == "__main__":
     id_vk = input('Введите id пользователя vk:\n')
     photos = file_from_vk(id_vk)
-    pprint(photos)
     if photos:
         token = input('Введите токен с Полигона Яндекс.Диска:\n')
         json_ = file_to_disk(photos, token)
