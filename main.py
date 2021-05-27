@@ -76,8 +76,12 @@ def file_to_disk(photos_disk: list, OAuth: string):
     if response.status_code == 201 or response.status_code == 409:
         print('ЯДиск готов принимать файлы')
         info_json = []
+        name_list = []
         for photo in photos_disk:
             name = str(photo['likes'])
+            if name in name_list:
+                name += photo['date']
+            name_list.append(name)
             params = {'url': photo['photo_url'],
                       'path': 'vk/' + name}
             response = requests.post(upload_url, headers=headers, params=params)
@@ -94,15 +98,16 @@ def file_to_disk(photos_disk: list, OAuth: string):
     return info_json
 
 
-id_vk = input('Введите id пользователя vk:\n')
-photos = file_from_vk(id_vk)
-if photos:
-    token = input('Введите токен с Полигона Яндекс.Диска:\n')
-    json_ = file_to_disk(photos, token)
-    if json_:
-        with open("photo_from_vk.json", 'w') as json_file:
-            json.dump(json_, json_file)
-        print('Выходной файл:')
-        pprint(json_)
-else:
-    print('Шеф, всё пропало!')
+if __name__ == "__main__":
+    id_vk = input('Введите id пользователя vk:\n')
+    photos = file_from_vk(id_vk)
+    if photos:
+        token = input('Введите токен с Полигона Яндекс.Диска:\n')
+        json_ = file_to_disk(photos, token)
+        if json_:
+            with open("photo_from_vk.json", 'w') as json_file:
+                json.dump(json_, json_file)
+            print('Выходной файл:')
+            pprint(json_)
+    else:
+        print('Шеф, всё пропало!')
