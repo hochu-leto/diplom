@@ -20,10 +20,35 @@ token_file = 'token.txt'
 
 
 def file_from_vk(owner_id: string):
+    vk_photo_sizes = {
+        's': 75,
+        'm': 130,
+        'x': 604,
+        'y': 807,
+        'z': 1080,
+        'w': 2560,
+        'o': 130,
+        'p': 200,
+        'r': 510
+        }
     with open(token_file) as gitignore:
         gitignore.readline().rstrip()
         TOKEN = gitignore.readline().rstrip()
-    url = 'https://api.vk.com/method/photos.get'
+    url = 'https://api.vk.com/method'
+    url_photo = url + '/photos.get'
+    url_user = url + '/users.get'
+    params = {
+        'user_ids': owner_id,
+        'access_token': TOKEN,
+        'v': '5.131',
+    }
+    if not owner_id.isdecimal():
+        response = requests.get(url_user, params=params).json()
+        pprint(response)
+        if 'error' in response:
+            print('Ошибка с определением ID - ', response['error']['error_msg'])
+            return
+        owner_id = response['response'][0]['id']
     params = {
         'owner_id': owner_id,
         'access_token': TOKEN,
@@ -32,15 +57,16 @@ def file_from_vk(owner_id: string):
         'extended': '1',
         'photo_sizes': '1'
     }
+
     photos_vk = []
-    response = requests.get(url, params=params)
+    response = requests.get(url_photo, params=params)
     if 'response' in response.json():
         print('Запрос на скачивание фото из контакта успешен')
         photo_count = int(input('Сколько фото нужно скачать:\n'))
         i = 0
         for items in response.json()['response']['items']:
             i += 1
-            if i >= photo_count:
+            if i > photo_count:
                 break
             likes = items['likes']['count']
             print(f'Скачиваем фото {items["id"]}(Кодовое имя {likes})')
@@ -48,10 +74,11 @@ def file_from_vk(owner_id: string):
             photo = ''
             photo_size = ''
             for sizes in items['sizes']:
-                if sizes['width'] > max_width:
-                    max_width = sizes['width']
+                if vk_photo_sizes[sizes['type']] >= max_width:
+                    max_width = vk_photo_sizes[sizes['type']]
                     photo = sizes['url']
                     photo_size = sizes['type']
+            pprint(photo)
             if photo:
                 photos_vk.append({'date': items['date'],
                                   'likes': likes,
@@ -67,7 +94,6 @@ def file_to_disk(photos_disk: list, OAuth: string):
     if not OAuth:
         with open(token_file) as gitignore:
             OAuth = gitignore.readline().rstrip()
-    print(OAuth)
     resource_url = "https://cloud-api.yandex.net/v1/disk/resources"
     upload_url = resource_url + '/upload'
     headers = {'Content-Type': 'application/json',
@@ -80,7 +106,7 @@ def file_to_disk(photos_disk: list, OAuth: string):
         for photo in photos_disk:
             name = str(photo['likes'])
             if name in name_list:
-                name += photo['date']
+                name += str(photo['date'])
             name_list.append(name)
             params = {'url': photo['photo_url'],
                       'path': 'vk/' + name}
@@ -101,6 +127,7 @@ def file_to_disk(photos_disk: list, OAuth: string):
 if __name__ == "__main__":
     id_vk = input('Введите id пользователя vk:\n')
     photos = file_from_vk(id_vk)
+    pprint(photos)
     if photos:
         token = input('Введите токен с Полигона Яндекс.Диска:\n')
         json_ = file_to_disk(photos, token)
