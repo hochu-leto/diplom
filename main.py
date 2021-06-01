@@ -1,16 +1,3 @@
-"""
-Чтобы обратиться к методу API ВКонтакте, Вам необходимо выполнить POST или GET запрос такого вида:
-https://api.vk.com/method/METHOD_NAME?PARAMETERS&access_token=ACCESS_TOKEN&v=V
-
-Он состоит из нескольких частей:
-METHOD_NAME (обязательно) — название метода API, к которому Вы хотите обратиться.
-Обратите внимание: имя метода чувствительно к регистру.
-PARAMETERS (опционально) — входные параметры соответствующего метода API, последовательность пар name=value, разделенных
-амперсандом. Список параметров указан на странице с описанием метода.
-ACCESS_TOKEN (обязательно) — ключ доступа.
-V (обязательно) — используемая версия API. Использование этого параметра применяет некоторые изменения в формате ответа
-различных методов. На текущий момент актуальная версия API — 5.131. Этот параметр следует передавать со всеми запросами.
-"""
 import string
 from pprint import pprint
 import json
@@ -20,48 +7,53 @@ token_file = 'token.txt'
 
 
 def file_from_vk(owner_id: string):
-    with open(token_file) as gitignore:
-        gitignore.readline().rstrip()
-        TOKEN = gitignore.readline().rstrip()
-        url = 'https://api.vk.com/method'
-        url_photo = url + '/photos.get'
-        url_user = url + '/users.get'
-        params = {
-            'user_ids': owner_id,
-            'access_token': TOKEN,
-            'v': '5.131',
-        }
-        if not owner_id.isdecimal():
-            response = requests.get(url_user, params=params).json()
-            pprint(response)
-            if 'error' in response:
-                print('Ошибка с определением ID - ', response['error']['error_msg'])
-                return
-            owner_id = response['response'][0]['id']
-        params = {
-            'owner_id': owner_id,
-            'access_token': TOKEN,
-            'album_id': 'profile',
-            'v': '5.131',
-            'extended': '1',
-            'photo_sizes': '1'
-        }
-        photos_vk = []
-        response = requests.get(url_photo, params=params)
-        if 'response' in response.json():
-            print('Запрос на скачивание фото из контакта успешен')
-            photo_count = int(input('Сколько фото нужно скачать:\n'))
-            i = 0
-            for items in response.json()['response']['items']:
-                i += 1
-                if i > photo_count:
-                    break
-                print(f'Скачиваем фото {items["id"]}')
-                photos_vk.append(max_photo_size(items))
-            return photos_vk
-        else:
-            print('Ошибка - ', response.json()['error']['error_msg'])
+    # with open(token_file) as gitignore:
+    #     gitignore.readline().rstrip()
+    TOKEN = '958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008'
+    # gitignore.readline().rstrip()
+    url = 'https://api.vk.com/method'
+    url_photo = url + '/photos.get'
+    url_user = url + '/users.get'
+    params = {
+        'user_ids': owner_id,
+        'access_token': TOKEN,
+        'v': '5.131',
+    }
+    if not owner_id.isdecimal():
+        response = requests.get(url_user, params=params).json()
+        if 'error' in response:
+            print('Ошибка с определением ID - ', response['error']['error_msg'])
             return
+        owner_id = response['response'][0]['id']
+    params = {
+        'owner_id': owner_id,
+        'access_token': TOKEN,
+        'album_id': 'profile',
+        'v': '5.131',
+        'extended': '1',
+        'photo_sizes': '1'
+    }
+    photos_vk = []
+    response = requests.get(url_photo, params=params).json()
+    if 'response' in response:
+        photo_count = (response['response']['count'])
+        print('Запрос на скачивание фото из контакта успешен')
+        if photo_count == 0:
+            print('В этом аккаунте нет фото в профиле')
+            return
+        print(f'В этом аккаунте {photo_count} фото в профиле')
+        photo_count = int(input('Сколько фото нужно скачать:\n'))
+        i = 0
+        for items in response['response']['items']:
+            i += 1
+            if i > photo_count:
+                break
+            print(f'Скачиваем фото {items["id"]}')
+            photos_vk.append(max_photo_size(items))
+        return photos_vk
+    else:
+        print('Ошибка - ', response['error']['error_msg'])
+        return
 
 
 def max_photo_size(item):
@@ -95,8 +87,9 @@ def max_photo_size(item):
 
 def file_to_disk(photos_disk: list, OAuth: string):
     if not OAuth:
-        with open(token_file) as gitignore:
-            OAuth = gitignore.readline().rstrip()
+        # with open(token_file) as gitignore:
+        OAuth = 'AQAAAAAAONHMAADLWwvS9ato0E0WnSlDhcPEv-s'
+        # gitignore.readline().rstrip()
     resource_url = "https://cloud-api.yandex.net/v1/disk/resources"
     headers = {'Content-Type': 'application/json',
                'Authorization': 'OAuth {}'.format(OAuth)}
@@ -133,7 +126,7 @@ def post_file(photo, name_list, headers):
 
 
 if __name__ == "__main__":
-    id_vk = input('Введите id пользователя vk:\n')
+    id_vk = input('Введите username или id пользователя vk:\n')
     photos = file_from_vk(id_vk)
     if photos:
         token = input('Введите токен с Полигона Яндекс.Диска:\n')
