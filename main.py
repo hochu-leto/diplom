@@ -3,20 +3,20 @@ from pprint import pprint
 import json
 import requests as requests
 
-token_file = 'token.txt'
+
+# token_file = 'token.txt'
 
 
-def file_from_vk(owner_id: string):
+def file_from_vk(owner_id: string, token_vk: string):
     # with open(token_file) as gitignore:
     #     gitignore.readline().rstrip()
-    TOKEN = '958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008'
-    # gitignore.readline().rstrip()
+    # TOKEN = gitignore.readline().rstrip()
     url = 'https://api.vk.com/method'
     url_photo = url + '/photos.get'
     url_user = url + '/users.get'
     params = {
         'user_ids': owner_id,
-        'access_token': TOKEN,
+        'access_token': token_vk,
         'v': '5.131',
     }
     if not owner_id.isdecimal():
@@ -27,7 +27,7 @@ def file_from_vk(owner_id: string):
         owner_id = response['response'][0]['id']
     params = {
         'owner_id': owner_id,
-        'access_token': TOKEN,
+        'access_token': token_vk,
         'album_id': 'profile',
         'v': '5.131',
         'extended': '1',
@@ -86,10 +86,9 @@ def max_photo_size(item):
 
 
 def file_to_disk(photos_disk: list, OAuth: string):
-    if not OAuth:
-        # with open(token_file) as gitignore:
-        OAuth = 'AQAAAAAAONHMAADLWwvS9ato0E0WnSlDhcPEv-s'
-        # gitignore.readline().rstrip()
+    # if not OAuth:
+    # with open(token_file) as gitignore:
+    #     OAuth = gitignore.readline().rstrip()
     resource_url = "https://cloud-api.yandex.net/v1/disk/resources"
     headers = {'Content-Type': 'application/json',
                'Authorization': 'OAuth {}'.format(OAuth)}
@@ -127,7 +126,8 @@ def post_file(photo, name_list, headers):
 
 if __name__ == "__main__":
     id_vk = input('Введите username или id пользователя vk:\n')
-    photos = file_from_vk(id_vk)
+    token = input('Введите ключ доступа vk:\n')
+    photos = file_from_vk(id_vk, token)
     if photos:
         token = input('Введите токен с Полигона Яндекс.Диска:\n')
         json_ = file_to_disk(photos, token)
